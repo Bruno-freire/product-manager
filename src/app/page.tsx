@@ -1,101 +1,157 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+
+type ProdutoComparado = {
+  id: number;
+  codigo: string;
+  nomeProduto: string;
+  tempoDePermanencia: number;
+};
+
+function calcularTempoPermanencia(dataEntrada: string): string {
+  const entrada = new Date(dataEntrada);
+  const agora = new Date();
+  const diffMs = agora.getTime() - entrada.getTime();
+  const diffMin = Math.floor(diffMs / (1000 * 60));
+  const diffHoras = Math.floor(diffMin / 60);
+  const diffDias = Math.floor(diffHoras / 24);
+  const diffSemanas = Math.floor(diffDias / 7);
+
+  if (diffMin < 60) return `${diffMin} minutos`;
+  if (diffHoras < 24) return `${diffHoras} horas`;
+  if (diffDias < 7) return `${diffDias} dias`;
+  return `${diffSemanas} semanas`;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [listaProdutos, setListaProdutos] = useState('');
+  const [produtosNovos, setProdutosNovos] = useState<ProdutoComparado[]>([]);
+  const [produtosExistentes, setProdutosExistentes] = useState<ProdutoComparado[]>([]);
+  const [produtosRemovidos, setProdutosRemovidos] = useState<ProdutoComparado[]>([]);
+  const [error, setError] = useState('');
+  const [snapshotId, setSnapshotId] = useState<number | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Função para buscar produtos existentes
+  const buscarProdutosExistentes = async () => {
+    try {
+      const response = await fetch('/api/products/existing', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      if (data.success) {
+        setProdutosExistentes(data.produtosExistentes || []);
+      } else {
+        setError(data.error || 'Erro ao carregar produtos existentes');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  // Usar useEffect para carregar produtos existentes ao montar o componente
+  useEffect(() => {
+    buscarProdutosExistentes();
+  }, []);
+
+  const atualizarLista = async () => {
+    setError('');
+    try {
+      const response = await fetch('/api/products/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listaProdutos }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setProdutosNovos(data.produtosNovos || []);
+        setProdutosExistentes(data.produtosExistentes || []);
+        setProdutosRemovidos(data.produtosRemovidos || []);
+        setSnapshotId(data.snapshotId);
+      } else {
+        setError(data.error || 'Erro desconhecido');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-blue-400 to-blue-600 p-6">
+      <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-2xl w-full">
+        <h1 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">Gerenciador de Produtos</h1>
+        
+        <textarea
+          className="w-full h-40 p-4 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          placeholder="Cole a lista de produtos atualizada..."
+          value={listaProdutos}
+          onChange={(e) => setListaProdutos(e.target.value)}
+        />
+        
+        <button
+          onClick={atualizarLista}
+          className="w-full cursor-pointer py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
+        >
+          Atualizar Lista
+        </button>
+        
+        {error && <p className="mt-4 text-red-500 text-center">{error}</p>}
+      </div>
+
+      <section className="mt-8 w-full max-w-2xl">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Comparação de Produtos</h2>
+        <div className="flex space-x-6">
+          <div className="bg-gray-100 p-4 rounded-lg w-1/3">
+            <h3 className="font-bold text-gray-700">Novos</h3>
+            {produtosNovos.length > 0 ? (
+              <ul className="space-y-2">
+                {produtosNovos.map(prod => (
+                  <li key={prod.id} className="text-gray-600">
+                    {prod.nomeProduto} (Código: {prod.codigo}) – {prod.tempoDePermanencia} dias
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">Nenhum novo</p>
+            )}
+          </div>
+          <div className="bg-gray-100 p-4 rounded-lg w-1/3">
+            <h3 className="font-bold text-gray-700">Existentes</h3>
+            {produtosExistentes.length > 0 ? (
+              <ul className="space-y-2">
+                {produtosExistentes.map(prod => (
+                  <li key={prod.id} className="text-gray-600">
+                    {prod.nomeProduto} (Código: {prod.codigo}) – {prod.tempoDePermanencia} dias
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">Nenhum existente</p>
+            )}
+          </div>
+          <div className="bg-gray-100 p-4 rounded-lg w-1/3">
+            <h3 className="font-bold text-gray-700">Removidos</h3>
+            {produtosRemovidos.length > 0 ? (
+              <ul className="space-y-2">
+                {produtosRemovidos.map(prod => (
+                  <li key={prod.id} className="text-gray-600">
+                    {prod.nomeProduto} (Código: {prod.codigo}) – {prod.tempoDePermanencia} dias
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">Nenhum removido</p>
+            )}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </section>
+
+      {snapshotId && (
+        <p className="mt-4 text-sm text-gray-500 text-center">
+          Snapshot ID: {snapshotId}
+        </p>
+      )}
+    </main>
   );
 }
