@@ -9,21 +9,6 @@ type ProdutoComparado = {
   tempoDePermanencia: number;
 };
 
-function calcularTempoPermanencia(dataEntrada: string): string {
-  const entrada = new Date(dataEntrada);
-  const agora = new Date();
-  const diffMs = agora.getTime() - entrada.getTime();
-  const diffMin = Math.floor(diffMs / (1000 * 60));
-  const diffHoras = Math.floor(diffMin / 60);
-  const diffDias = Math.floor(diffHoras / 24);
-  const diffSemanas = Math.floor(diffDias / 7);
-
-  if (diffMin < 60) return `${diffMin} minutos`;
-  if (diffHoras < 24) return `${diffHoras} horas`;
-  if (diffDias < 7) return `${diffDias} dias`;
-  return `${diffSemanas} semanas`;
-}
-
 export default function Home() {
   const [listaProdutos, setListaProdutos] = useState('');
   const [produtosNovos, setProdutosNovos] = useState<ProdutoComparado[]>([]);
