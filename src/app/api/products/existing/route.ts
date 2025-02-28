@@ -1,6 +1,6 @@
-// src/app/api/products/existentes/route.ts
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { calculateTimeInDays } from '../../../../lib/utils';
 
 const prisma = new PrismaClient();
 
@@ -23,7 +23,7 @@ export async function GET() {
       id: prod.id,
       codigo: prod.codigo,
       nomeProduto: prod.nomeProduto,
-      tempoDePermanencia: calcularTempoEmDias(prod.dataEntrada, prod.ativo)
+      tempoDePermanencia: calculateTimeInDays(prod.dataEntrada, prod.ativo)
     }));
 
     return NextResponse.json({
@@ -36,12 +36,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
-
-// Função para calcular o tempo de permanência (em dias)
-function calcularTempoEmDias(dataEntrada: Date, ativo: boolean): number {
-  if (!ativo) return 0;
-  const hoje = new Date();
-  const diffMs = hoje.getTime() - new Date(dataEntrada).getTime();
-  return Math.floor(diffMs / (1000 * 3600 * 24));
 }
