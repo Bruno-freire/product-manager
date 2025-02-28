@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       );
     }
     
-    const regex = /^\d+\.\s+(\d+)\s+([A-Za-zÀ-ÿ0-9\/ ]+?)-/gm;
+    const regex = /^\d+\.\s+(\d+)\s+([A-Za-zÀ-ÿ0-9\/&.,()°+-]+?)-/gm;
     const resultados = [...listaProdutos.matchAll(regex)];
     
     const produtosNovaList = resultados.map(result => ({
