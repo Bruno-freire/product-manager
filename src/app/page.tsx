@@ -44,6 +44,8 @@ export default function Home() {
     try {
       let response;
       if (productList.length === 0) {
+        setNewProducts([]);
+        setRemovedProducts([]);
         return await fetchExistingProducts();
       } else {
         response = await fetch("/api/products/", {
