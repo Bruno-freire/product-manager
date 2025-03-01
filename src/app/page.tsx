@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { formatDuration } from '../lib/utils';
 
 type ProdutoComparado = {
   id: number;
@@ -35,7 +36,7 @@ export default function Home() {
     }
   };
 
-  // Usar useEffect para carregar produtos existentes ao montar o componente
+  // Carrega produtos existentes ao montar o componente
   useEffect(() => {
     buscarProdutosExistentes();
   }, []);
@@ -43,11 +44,21 @@ export default function Home() {
   const atualizarLista = async () => {
     setError('');
     try {
-      const response = await fetch('/api/products/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listaProdutos }),
-      });
+      let response;
+      if (listaProdutos.trim() === '') {
+        // Se a lista estiver vazia, realiza um GET para atualizar a lista existente
+        response = await fetch('/api/products/existing', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        // Caso contrário, envia a nova lista via POST
+        response = await fetch('/api/products/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ listaProdutos }),
+        });
+      }
       const data = await response.json();
       if (data.success) {
         setProdutosNovos(data.produtosNovos || []);
@@ -65,7 +76,9 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-blue-400 to-blue-600 p-6">
       <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-2xl w-full">
-        <h1 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">Gerenciador de Produtos</h1>
+        <h1 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">
+          Gerenciador de Produtos
+        </h1>
         
         <textarea
           className="w-full h-40 p-4 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -93,7 +106,7 @@ export default function Home() {
               <ul className="space-y-2">
                 {produtosNovos.map(prod => (
                   <li key={prod.id} className="text-gray-600">
-                    {prod.nomeProduto} (Código: {prod.codigo}) – {prod.tempoDePermanencia} dias
+                    {prod.nomeProduto} (Código: {prod.codigo}) – {formatDuration(prod.tempoDePermanencia)}
                   </li>
                 ))}
               </ul>
@@ -107,7 +120,7 @@ export default function Home() {
               <ul className="space-y-2">
                 {produtosExistentes.map(prod => (
                   <li key={prod.id} className="text-gray-600">
-                    {prod.nomeProduto} (Código: {prod.codigo}) – {prod.tempoDePermanencia} dias
+                    {prod.nomeProduto} (Código: {prod.codigo}) – {formatDuration(prod.tempoDePermanencia)}
                   </li>
                 ))}
               </ul>
@@ -121,7 +134,7 @@ export default function Home() {
               <ul className="space-y-2">
                 {produtosRemovidos.map(prod => (
                   <li key={prod.id} className="text-gray-600">
-                    {prod.nomeProduto} (Código: {prod.codigo}) – {prod.tempoDePermanencia} dias
+                    {prod.nomeProduto} (Código: {prod.codigo}) – {formatDuration(prod.tempoDePermanencia)}
                   </li>
                 ))}
               </ul>
@@ -140,3 +153,4 @@ export default function Home() {
     </main>
   );
 }
+  
