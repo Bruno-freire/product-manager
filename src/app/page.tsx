@@ -2,13 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { formatDuration } from "../lib/utils";
-
-type ComparedProduct = {
-  id: number;
-  code: string;
-  productName: string;
-  duration: number;
-};
+import { ComparedProduct } from "./types/comparedTypes";
+import { renderProductList } from "./components/renderProductList";
 
 export default function Home() {
   const [productList, setProductList] = useState("");
@@ -102,51 +97,9 @@ export default function Home() {
           Product Comparison
         </h2>
         <div className="flex space-x-6">
-          <div className="bg-gray-100 p-4 rounded-lg w-1/3">
-            <h3 className="font-bold text-gray-700">New</h3>
-            {newProducts.length > 0 ? (
-              <ul className="space-y-2">
-                {newProducts.map((product) => (
-                  <li key={product.id} className="text-gray-600">
-                    {product.productName} (Code: {product.code}) –{" "}
-                    {formatDuration(product.duration)}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500">No new products</p>
-            )}
-          </div>
-          <div className="bg-gray-100 p-4 rounded-lg w-1/3">
-            <h3 className="font-bold text-gray-700">Existing</h3>
-            {existingProducts.length > 0 ? (
-              <ul className="space-y-2">
-                {existingProducts.map((product) => (
-                  <li key={product.id} className="text-gray-600">
-                    {product.productName} (Code: {product.code}) –{" "}
-                    {formatDuration(product.duration)}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500">No existing products</p>
-            )}
-          </div>
-          <div className="bg-gray-100 p-4 rounded-lg w-1/3">
-            <h3 className="font-bold text-gray-700">Removed</h3>
-            {removedProducts.length > 0 ? (
-              <ul className="space-y-2">
-                {removedProducts.map((product) => (
-                  <li key={product.id} className="text-gray-600">
-                    {product.productName} (Code: {product.code}) –{" "}
-                    {formatDuration(product.duration)}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500">No removed products</p>
-            )}
-          </div>
+            {renderProductList("New", newProducts)}
+            {renderProductList("Existing", existingProducts)}
+            {renderProductList("Removed", removedProducts)}
         </div>
       </section>
 
