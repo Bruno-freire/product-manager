@@ -7,27 +7,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Produto {
-  id          Int           @id @default(autoincrement())
-  codigo      String        @unique
-  nomeProduto String
-  dataEntrada DateTime
-  ativo       Boolean       @default(true)
-  listaProdutos ListaProduto[]
+model Product {
+  id           Int           @id @default(autoincrement())
+  code         String        @unique
+  productName  String
+  entryDate    DateTime
+  active       Boolean       @default(true)
+  listProducts ListProduct[]
 }
 
-model Lista {
-  id            Int           @id @default(autoincrement())
-  createdAt     DateTime      @default(now())
-  listaProdutos ListaProduto[]
+model List {
+  id           Int           @id @default(autoincrement())
+  createdAt    DateTime      @default(now())
+  listProducts ListProduct[]
 }
 
-model ListaProduto {
-  id        Int      @id @default(autoincrement())
-  listaId   Int
-  produtoId Int
-  lista     Lista    @relation(fields: [listaId], references: [id])
-  produto   Produto  @relation(fields: [produtoId], references: [id])
+model ListProduct {
+  id         Int     @id @default(autoincrement())
+  listId     Int
+  productId  Int
+  list       List    @relation(fields: [listId], references: [id])
+  product    Product @relation(fields: [productId], references: [id])
   
-  @@unique([listaId, produtoId])
+  @@unique([listId, productId])
 }

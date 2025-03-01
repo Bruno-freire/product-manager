@@ -1,72 +1,72 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { formatDuration } from '../lib/utils';
+import { useState, useEffect } from "react";
+import { formatDuration } from "../lib/utils";
 
-type ProdutoComparado = {
+type ComparedProduct = {
   id: number;
-  codigo: string;
-  nomeProduto: string;
-  tempoDePermanencia: number;
+  code: string;
+  productName: string;
+  duration: number;
 };
 
 export default function Home() {
-  const [listaProdutos, setListaProdutos] = useState('');
-  const [produtosNovos, setProdutosNovos] = useState<ProdutoComparado[]>([]);
-  const [produtosExistentes, setProdutosExistentes] = useState<ProdutoComparado[]>([]);
-  const [produtosRemovidos, setProdutosRemovidos] = useState<ProdutoComparado[]>([]);
-  const [error, setError] = useState('');
+  const [productList, setProductList] = useState("");
+  const [newProducts, setNewProducts] = useState<ComparedProduct[]>([]);
+  const [existingProducts, setExistingProducts] = useState<ComparedProduct[]>(
+    []
+  );
+  const [removedProducts, setRemovedProducts] = useState<ComparedProduct[]>([]);
+  const [error, setError] = useState("");
   const [snapshotId, setSnapshotId] = useState<number | null>(null);
 
-  // Função para buscar produtos existentes
-  const buscarProdutosExistentes = async () => {
+  // Function to fetch existing products
+  const fetchExistingProducts = async () => {
     try {
-      const response = await fetch('/api/products/existing', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/products/existing", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
       });
       const data = await response.json();
       if (data.success) {
-        setProdutosExistentes(data.produtosExistentes || []);
+        setExistingProducts(data.existingProducts || []);
       } else {
-        setError(data.error || 'Erro ao carregar produtos existentes');
+        setError(data.error || "Error loading existing products");
       }
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  // Carrega produtos existentes ao montar o componente
+  // Load existing products when the component mounts
   useEffect(() => {
-    buscarProdutosExistentes();
+    fetchExistingProducts();
   }, []);
 
-  const atualizarLista = async () => {
-    setError('');
+  // Update the list: if the productList is empty, perform a GET to update the existing list; otherwise, send a POST with the new list.
+  const updateList = async () => {
+    setError("");
     try {
       let response;
-      if (listaProdutos.trim() === '') {
-        // Se a lista estiver vazia, realiza um GET para atualizar a lista existente
-        response = await fetch('/api/products/existing', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
+      if (productList.length === 0) {
+        return await fetchExistingProducts();
       } else {
-        // Caso contrário, envia a nova lista via POST
-        response = await fetch('/api/products/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ listaProdutos }),
+        response = await fetch("/api/products/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productList: productList }),
         });
-      }
-      const data = await response.json();
-      if (data.success) {
-        setProdutosNovos(data.produtosNovos || []);
-        setProdutosExistentes(data.produtosExistentes || []);
-        setProdutosRemovidos(data.produtosRemovidos || []);
-        setSnapshotId(data.snapshotId);
-      } else {
-        setError(data.error || 'Erro desconhecido');
+
+        const data = await response.json();
+        if (data.success) {
+          console.log(data);
+          setNewProducts(data.newProducts || []);
+          setExistingProducts(data.existingProducts || []);
+          setRemovedProducts(data.removedProducts || []);
+          setSnapshotId(data.snapshotId);
+        } else {
+          setError(data.error || "Unknown error");
+        }
       }
     } catch (err: any) {
       setError(err.message);
@@ -77,69 +77,74 @@ export default function Home() {
     <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-blue-400 to-blue-600 p-6">
       <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-2xl w-full">
         <h1 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">
-          Gerenciador de Produtos
+          Product Manager
         </h1>
-        
+
         <textarea
           className="w-full h-40 p-4 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-300"
-          placeholder="Cole a lista de produtos atualizada..."
-          value={listaProdutos}
-          onChange={(e) => setListaProdutos(e.target.value)}
+          placeholder="Paste the updated product list..."
+          value={productList}
+          onChange={(e) => setProductList(e.target.value)}
         />
-        
+
         <button
-          onClick={atualizarLista}
+          onClick={updateList}
           className="w-full cursor-pointer py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
         >
-          Atualizar Lista
+          Update List
         </button>
-        
+
         {error && <p className="mt-4 text-red-500 text-center">{error}</p>}
       </div>
 
       <section className="mt-8 w-full max-w-2xl">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Comparação de Produtos</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+          Product Comparison
+        </h2>
         <div className="flex space-x-6">
           <div className="bg-gray-100 p-4 rounded-lg w-1/3">
-            <h3 className="font-bold text-gray-700">Novos</h3>
-            {produtosNovos.length > 0 ? (
+            <h3 className="font-bold text-gray-700">New</h3>
+            {newProducts.length > 0 ? (
               <ul className="space-y-2">
-                {produtosNovos.map(prod => (
-                  <li key={prod.id} className="text-gray-600">
-                    {prod.nomeProduto} (Código: {prod.codigo}) – {formatDuration(prod.tempoDePermanencia)}
+                {newProducts.map((product) => (
+                  <li key={product.id} className="text-gray-600">
+                    {product.productName} (Code: {product.code}) –{" "}
+                    {formatDuration(product.duration)}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-500">Nenhum novo</p>
+              <p className="text-gray-500">No new products</p>
             )}
           </div>
           <div className="bg-gray-100 p-4 rounded-lg w-1/3">
-            <h3 className="font-bold text-gray-700">Existentes</h3>
-            {produtosExistentes.length > 0 ? (
+            <h3 className="font-bold text-gray-700">Existing</h3>
+            {existingProducts.length > 0 ? (
               <ul className="space-y-2">
-                {produtosExistentes.map(prod => (
-                  <li key={prod.id} className="text-gray-600">
-                    {prod.nomeProduto} (Código: {prod.codigo}) – {formatDuration(prod.tempoDePermanencia)}
+                {existingProducts.map((product) => (
+                  <li key={product.id} className="text-gray-600">
+                    {product.productName} (Code: {product.code}) –{" "}
+                    {formatDuration(product.duration)}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-500">Nenhum existente</p>
+              <p className="text-gray-500">No existing products</p>
             )}
           </div>
           <div className="bg-gray-100 p-4 rounded-lg w-1/3">
-            <h3 className="font-bold text-gray-700">Removidos</h3>
-            {produtosRemovidos.length > 0 ? (
+            <h3 className="font-bold text-gray-700">Removed</h3>
+            {removedProducts.length > 0 ? (
               <ul className="space-y-2">
-                {produtosRemovidos.map(prod => (
-                  <li key={prod.id} className="text-gray-600">
-                    {prod.nomeProduto} (Código: {prod.codigo}) – {formatDuration(prod.tempoDePermanencia)}
+                {removedProducts.map((product) => (
+                  <li key={product.id} className="text-gray-600">
+                    {product.productName} (Code: {product.code}) –{" "}
+                    {formatDuration(product.duration)}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-500">Nenhum removido</p>
+              <p className="text-gray-500">No removed products</p>
             )}
           </div>
         </div>
@@ -153,4 +158,3 @@ export default function Home() {
     </main>
   );
 }
-  

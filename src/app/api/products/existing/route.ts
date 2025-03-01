@@ -4,35 +4,35 @@ import { calculateTimeInDays } from '../../../../lib/utils';
 
 const prisma = new PrismaClient();
 
-type ProdutoComparado = {
+type ComparedProduct = {
   id: number;
-  codigo: string;
-  nomeProduto: string;
-  tempoDePermanencia: number;
+  code: string;
+  productName: string;
+  duration: number;
 };
 
 export async function GET() {
   try {
-    // Buscar produtos ativos no banco
-    const produtosAtivos = await prisma.produto.findMany({
-      where: { ativo: true }
+    // Fetch active products from the database
+    const activeProducts = await prisma.product.findMany({
+      where: { active: true }
     });
 
-    // Preparar array de resposta (calculando tempo de permanência)
-    const responseExistentes: ProdutoComparado[] = produtosAtivos.map(prod => ({
+    // Prepare the response array (calculating the duration)
+    const existingResponse: ComparedProduct[] = activeProducts.map(prod => ({
       id: prod.id,
-      codigo: prod.codigo,
-      nomeProduto: prod.nomeProduto,
-      tempoDePermanencia: calculateTimeInDays(prod.dataEntrada, prod.ativo)
+      code: prod.code,
+      productName: prod.productName,
+      duration: calculateTimeInDays(prod.entryDate, prod.active)
     }));
 
     return NextResponse.json({
       success: true,
-      produtosExistentes: responseExistentes
+      existingProducts: existingResponse
     });
   } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: error.message || 'Erro ao buscar produtos existentes' },
+      { success: false, error: error.message || 'Error fetching existing products' },
       { status: 500 }
     );
   }
