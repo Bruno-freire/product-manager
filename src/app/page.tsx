@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { formatDuration } from "../lib/utils";
 import { ComparedProduct } from "./types/comparedTypes";
 import { renderProductList } from "./components/renderProductList";
 

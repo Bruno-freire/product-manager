@@ -3,7 +3,7 @@ import { formatDuration } from "../../lib/utils";
 import { ComparedProduct } from "../types/comparedTypes"
 
 export const renderProductList = (title: string, products: ComparedProduct[]) => (
-  <div className="bg-gray-100 p-4 rounded-lg w-1/3">
+  <div className="bg-gray-100 p-4 rounded-lg w-1/3 overflow-y-auto max-h-60">
     <h3 className="font-bold text-gray-700">{title}</h3>
     {products.length > 0 ? (
       <ul className="space-y-2">
