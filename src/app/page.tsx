@@ -7,14 +7,13 @@ import { renderProductList } from "./components/renderProductList";
 export default function Home() {
   const [productList, setProductList] = useState("");
   const [newProducts, setNewProducts] = useState<ComparedProduct[]>([]);
-  const [existingProducts, setExistingProducts] = useState<ComparedProduct[]>(
-    []
-  );
+  const [existingProducts, setExistingProducts] = useState<ComparedProduct[]>([]);
   const [removedProducts, setRemovedProducts] = useState<ComparedProduct[]>([]);
   const [error, setError] = useState("");
   const [snapshotId, setSnapshotId] = useState<number | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Function to fetch existing products
+  // Função para buscar produtos existentes
   const fetchExistingProducts = async () => {
     try {
       const response = await fetch("/api/products/existing", {
@@ -32,30 +31,28 @@ export default function Home() {
     }
   };
 
-  // Load existing products when the component mounts
+  // Carrega produtos existentes quando o componente monta
   useEffect(() => {
     fetchExistingProducts();
   }, []);
 
-  // Update the list: if the productList is empty, perform a GET to update the existing list; otherwise, send a POST with the new list.
   const updateList = async () => {
+    setIsProcessing(true);
     setError("");
     try {
-      let response;
-      if (productList.length === 0) {
+      if (productList.trim().length === 0) {
         setNewProducts([]);
         setRemovedProducts([]);
-        return await fetchExistingProducts();
+        await fetchExistingProducts();
+        return;
       } else {
-        response = await fetch("/api/products/", {
+        const response = await fetch("/api/products/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productList: productList }),
+          body: JSON.stringify({ productList }),
         });
-
         const data = await response.json();
         if (data.success) {
-          console.log(data);
           setNewProducts(data.newProducts || []);
           setExistingProducts(data.existingProducts || []);
           setRemovedProducts(data.removedProducts || []);
@@ -66,6 +63,8 @@ export default function Home() {
       }
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -85,9 +84,14 @@ export default function Home() {
 
         <button
           onClick={updateList}
-          className="w-full cursor-pointer py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
+          disabled={isProcessing}
+          className={`w-full py-3 text-white font-semibold rounded-lg transition-colors ${
+            isProcessing
+              ? "bg-gray-500 cursor-wait"
+              : "bg-green-500 hover:bg-green-600 cursor-pointer"
+          }`}
         >
-          Update List
+          {isProcessing ? "Carregando..." : "Update List"}
         </button>
 
         {error && <p className="mt-4 text-red-500 text-center">{error}</p>}
@@ -98,9 +102,9 @@ export default function Home() {
           Product Comparison
         </h2>
         <div className="flex space-x-6">
-            {renderProductList("New", newProducts)}
-            {renderProductList("Existing", existingProducts)}
-            {renderProductList("Removed", removedProducts)}
+          {renderProductList("New", newProducts)}
+          {renderProductList("Existing", existingProducts)}
+          {renderProductList("Removed", removedProducts)}
         </div>
       </section>
 

@@ -13,13 +13,25 @@ type ComparedProduct = {
 
 export async function GET() {
   try {
-    // Fetch active products from the database
+    // Busca somente os campos necessários dos produtos ativos
     const activeProducts = await prisma.product.findMany({
-      where: { active: true }
+      where: { active: true },
+      select: {
+        id: true,
+        code: true,
+        productName: true,
+        entryDate: true,
+        active: true
+      }
     });
 
-    // Prepare the response array (calculating the duration)
-    const existingResponse: ComparedProduct[] = activeProducts.map(prod => ({
+    // Ordena os produtos pelo entryDate (do mais recente para o mais antigo)
+    const sortedActiveProducts = activeProducts.sort((a, b) => 
+      new Date(a.entryDate).getTime() - new Date(b.entryDate).getTime()
+    );
+
+    // Prepara o array de resposta, calculando a duração para cada produto
+    const existingResponse: ComparedProduct[] = sortedActiveProducts.map(prod => ({
       id: prod.id,
       code: prod.code,
       productName: prod.productName,
@@ -31,6 +43,9 @@ export async function GET() {
       existingProducts: existingResponse
     });
   } catch (error: any) {
+    // Log do erro para facilitar a depuração
+    console.error('Error fetching existing products:', error);
+
     return NextResponse.json(
       { success: false, error: error.message || 'Error fetching existing products' },
       { status: 500 }

@@ -22,99 +22,97 @@ export async function POST(request: Request) {
       );
     }
 
-    // Regex to capture product code and product name.
-    // Expects the format: "Number. <code> <product name>-"
+    // Regex para capturar o código e o nome do produto.
+    // Espera o formato: "Número. <código> <nome do produto>-"
     const regex = /(\d+)\s([^\-]+)-.*/g;
-
-    // Use matchAll to capture all occurrences and convert to an array
     const results = [...productList.matchAll(regex)];
 
-    // Map results to extract code (group 1) and product name (group 2)
+    // Mapeia os resultados para extrair o código e o nome do produto
     const newProductList = results.map(result => ({
       code: result[1].trim(),
       productName: result[2].trim()
     }));
 
-    // Fetch active products from the database
+    // Busca os produtos ativos no banco de dados
     const activeProducts = await prisma.product.findMany({
       where: { active: true }
     });
-
     const activeCodes = activeProducts.map(p => p.code);
     const newCodes = newProductList.map(p => p.code);
 
-    // Determine new, removed, and existing products
+    // Define produtos novos, removidos e existentes
     const newProducts = newProductList.filter(p => !activeCodes.includes(p.code));
     const removedProducts = activeProducts.filter(p => !newCodes.includes(p.code));
     const existingProducts = activeProducts.filter(p => newCodes.includes(p.code));
 
-    const createdProducts = [];
-    for (const prod of newProducts) {
-      // Look for an inactive product with the same code
-      const existingProduct = await prisma.product.findFirst({
-        where: { code: prod.code, active: false }
-      });
+    // Utiliza Promise.all para upsertar os produtos novos em paralelo
+    const upsertPromises = newProducts.map(prod =>
+      prisma.product.upsert({
+        where: { code: prod.code },
+        update: { active: true, entryDate: new Date() },
+        create: {
+          code: prod.code,
+          productName: prod.productName,
+          entryDate: new Date(),
+          active: true
+        }
+      })
+    );
+    const createdProducts = await Promise.all(upsertPromises);
 
-      let created;
-      if (existingProduct) {
-        // If it exists, reactivate the product
-        created = await prisma.product.update({
-          where: { id: existingProduct.id },
-          data: { active: true }
-        });
-      } else {
-        // Otherwise, create a new product
-        created = await prisma.product.create({
-          data: {
-            code: prod.code,
-            productName: prod.productName,
-            entryDate: new Date(),
-            active: true
-          }
-        });
-      }
-      createdProducts.push(created);
-    }
-
-    // Deactivate removed products
-    for (const prod of removedProducts) {
-      await prisma.product.update({
-        where: { id: prod.id },
+    // Desativa os produtos removidos com uma única operação
+    if (removedProducts.length > 0) {
+      await prisma.product.updateMany({
+        where: { id: { in: removedProducts.map(p => p.id) } },
         data: { active: false }
       });
     }
 
-    // Prepare responses for new, existing, and removed products
-    const newResponse: ComparedProduct[] = createdProducts.map(prod => ({
+    const sortedNewProducts = createdProducts.sort((a, b) => 
+      new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime()
+    );
+    
+    // Ordena os produtos existentes pelo entryDate (do mais recente para o mais antigo)
+    const sortedExistingProducts = existingProducts.sort((a, b) => 
+      new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime()
+    );
+    
+    // Ordena os produtos removidos pelo entryDate (do mais recente para o mais antigo)
+    const sortedRemovedProducts = removedProducts.sort((a, b) => 
+      new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime()
+    );
+    
+    // Prepara as respostas para os produtos criados, existentes e removidos
+    const newResponse: ComparedProduct[] = sortedNewProducts.map(prod => ({
       id: prod.id,
       code: prod.code,
       productName: prod.productName,
       duration: calculateTimeInDays(prod.entryDate, prod.active)
     }));
-
-    const existingResponse: ComparedProduct[] = existingProducts.map(prod => ({
+    
+    const existingResponse: ComparedProduct[] = sortedExistingProducts.map(prod => ({
       id: prod.id,
       code: prod.code,
       productName: prod.productName,
       duration: calculateTimeInDays(prod.entryDate, prod.active)
     }));
-
-    const removedResponse: ComparedProduct[] = removedProducts.map(prod => ({
+    
+    const removedResponse: ComparedProduct[] = sortedRemovedProducts.map(prod => ({
       id: prod.id,
       code: prod.code,
       productName: prod.productName,
       duration: 0
     }));
-
-    // Create a snapshot of the current product list
+    
+    // Cria um snapshot da lista atual de produtos
     const snapshot = await prisma.list.create({
       data: {
         listProducts: {
           create: [
-            ...createdProducts.map(prod => ({
+            ...sortedNewProducts.map(prod => ({
               product: { connect: { id: prod.id } }
             })),
-            ...existingProducts.map(prod => ({
+            ...sortedExistingProducts.map(prod => ({
               product: { connect: { id: prod.id } }
             }))
           ]
@@ -122,7 +120,7 @@ export async function POST(request: Request) {
       },
       include: { listProducts: { include: { product: true } } }
     });
-
+    
     return NextResponse.json({
       success: true,
       newProducts: newResponse,
