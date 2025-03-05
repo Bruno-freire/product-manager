@@ -14,6 +14,9 @@ model Product {
   entryDate    DateTime
   active       Boolean       @default(true)
   listProducts ListProduct[]
+
+  @@index([active])
+  @@index([entryDate])
 }
 
 model List {
