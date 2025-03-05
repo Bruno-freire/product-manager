@@ -6,7 +6,7 @@ export const renderProductList = (
   title: string,
   products: ComparedProduct[]
 ) => (
-  <div className="bg-gray-100 p-4 rounded-lg w-1/3 ">
+  <div className="w-full bg-gray-100 p-4 rounded-lg ">
     <h3 className="font-bold text-gray-700">{title}</h3>
     <div className="overflow-y-auto max-h-60">
       {products.length > 0 ? (

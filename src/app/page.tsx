@@ -10,7 +10,6 @@ export default function Home() {
   const [existingProducts, setExistingProducts] = useState<ComparedProduct[]>([]);
   const [removedProducts, setRemovedProducts] = useState<ComparedProduct[]>([]);
   const [error, setError] = useState("");
-  const [snapshotId, setSnapshotId] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Função para buscar produtos existentes
@@ -56,7 +55,6 @@ export default function Home() {
           setNewProducts(data.newProducts || []);
           setExistingProducts(data.existingProducts || []);
           setRemovedProducts(data.removedProducts || []);
-          setSnapshotId(data.snapshotId);
         } else {
           setError(data.error || "Unknown error");
         }
@@ -101,18 +99,12 @@ export default function Home() {
         <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
           Product Comparison
         </h2>
-        <div className="flex space-x-6">
+        <div className="flex flex-col space-y-6">
           {renderProductList("New", newProducts)}
           {renderProductList("Existing", existingProducts)}
           {renderProductList("Removed", removedProducts)}
         </div>
       </section>
-
-      {snapshotId && (
-        <p className="mt-4 text-sm text-gray-500 text-center">
-          Snapshot ID: {snapshotId}
-        </p>
-      )}
     </main>
   );
 }

@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { calculateTimeInDays } from '../../../../lib/utils';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../../../lib/prisma';
 
 type ComparedProduct = {
   id: number;
