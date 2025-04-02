@@ -12,6 +12,8 @@ model Product {
   code         String        @unique
   productName  String
   entryDate    DateTime
+  address      String
+  amount       String
   active       Boolean       @default(true)
   listProducts ListProduct[]
 

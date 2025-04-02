@@ -18,6 +18,8 @@ export async function GET() {
         id: true,
         code: true,
         productName: true,
+        address: true,
+        amount: true,
         entryDate: true,
         active: true
       }
@@ -33,6 +35,8 @@ export async function GET() {
       id: prod.id,
       code: prod.code,
       productName: prod.productName,
+      address: prod.address,
+      amount: prod.amount,
       duration: calculateTimeInDays(prod.entryDate, prod.active)
     }));
 

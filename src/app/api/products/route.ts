@@ -7,6 +7,8 @@ type ComparedProduct = {
   id: number;
   code: string;
   productName: string;
+  address: string,
+  amount: string
   duration: number;
 };
 
@@ -23,13 +25,15 @@ export async function POST(request: Request) {
 
     // Regex para capturar o código e o nome do produto.
     // Espera o formato: "Número. <código> <nome do produto>-"
-    const regex = /(\d+)\s([^\-]+)-.*/g;
+    const regex = /^(\d+)\s+(.+?)-\d+\s+.*?(\d{3}\.\d+\.\d+\.\d+ A)\s+(-?\d+,\d+)/gm;
     const results = [...productList.matchAll(regex)];
 
     // Mapeia os resultados para extrair o código e o nome do produto
     const newProductList = results.map((result) => ({
       code: result[1].trim(),
       productName: result[2].trim(),
+      address: result[3].trim(),
+      amount: result[4].trim()
     }));
 
     // Busca os produtos ativos no banco de dados
@@ -62,6 +66,8 @@ export async function POST(request: Request) {
           create: {
             code: prod.code,
             productName: prod.productName,
+            address: prod.address,
+            amount: prod.amount,
             entryDate: new Date(),
             active: true,
           },
@@ -100,6 +106,8 @@ export async function POST(request: Request) {
       id: prod.id,
       code: prod.code,
       productName: prod.productName,
+      address: prod.address,
+      amount: prod.amount,
       duration: calculateTimeInDays(prod.entryDate, prod.active),
     }));
 
@@ -108,6 +116,8 @@ export async function POST(request: Request) {
         id: prod.id,
         code: prod.code,
         productName: prod.productName,
+        address: prod.address,
+        amount: prod.amount,
         duration: calculateTimeInDays(prod.entryDate, prod.active),
       })
     );
@@ -117,9 +127,12 @@ export async function POST(request: Request) {
         id: prod.id,
         code: prod.code,
         productName: prod.productName,
+        address: prod.address,
+        amount: prod.amount,
         duration: 0,
       })
     );
+    console.log(existingProducts)
 
     return NextResponse.json({
       success: true,
