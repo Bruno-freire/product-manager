@@ -10,8 +10,8 @@ datasource db {
 model Product {
   id           Int           @id @default(autoincrement())
   code         String        @unique
-  productName  String
-  entryDate    DateTime
+  name  String
+  entryDate    DateTime      @default(now())
   address      String
   amount       String
   active       Boolean       @default(true)

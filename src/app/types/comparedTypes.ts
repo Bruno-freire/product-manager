@@ -1,7 +1,7 @@
 export type ComparedProduct = {
   id: number;
   code: string;
-  productName: string;
+  name: string;
   address: string,
   amount: string
   duration: number;

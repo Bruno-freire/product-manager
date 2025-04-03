@@ -6,7 +6,7 @@ import pLimit from "p-limit";
 type ComparedProduct = {
   id: number;
   code: string;
-  productName: string;
+  name: string;
   address: string,
   amount: string
   duration: number;
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     // Mapeia os resultados para extrair o código e o nome do produto
     const newProductList = results.map((result) => ({
       code: result[1].trim(),
-      productName: result[2].trim(),
+      name: result[2].trim(),
       address: result[3].trim(),
       amount: result[4].trim()
     }));
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
           update: { active: true, entryDate: new Date() },
           create: {
             code: prod.code,
-            productName: prod.productName,
+            name: prod.name,
             address: prod.address,
             amount: prod.amount,
             entryDate: new Date(),
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     const newResponse: ComparedProduct[] = sortedNewProducts.map((prod) => ({
       id: prod.id,
       code: prod.code,
-      productName: prod.productName,
+      name: prod.name,
       address: prod.address,
       amount: prod.amount,
       duration: calculateTimeInDays(prod.entryDate, prod.active),
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
       (prod) => ({
         id: prod.id,
         code: prod.code,
-        productName: prod.productName,
+        name: prod.name,
         address: prod.address,
         amount: prod.amount,
         duration: calculateTimeInDays(prod.entryDate, prod.active),
@@ -126,13 +126,12 @@ export async function POST(request: Request) {
       (prod) => ({
         id: prod.id,
         code: prod.code,
-        productName: prod.productName,
+        name: prod.name,
         address: prod.address,
         amount: prod.amount,
         duration: 0,
       })
     );
-    console.log(existingProducts)
 
     return NextResponse.json({
       success: true,

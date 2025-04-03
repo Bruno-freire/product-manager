@@ -5,7 +5,7 @@ import { prisma } from '../../../../lib/prisma';
 type ComparedProduct = {
   id: number;
   code: string;
-  productName: string;
+  name: string;
   duration: number;
 };
 
@@ -17,7 +17,7 @@ export async function GET() {
       select: {
         id: true,
         code: true,
-        productName: true,
+        name: true,
         address: true,
         amount: true,
         entryDate: true,
@@ -34,7 +34,7 @@ export async function GET() {
     const existingResponse: ComparedProduct[] = sortedActiveProducts.map(prod => ({
       id: prod.id,
       code: prod.code,
-      productName: prod.productName,
+      name: prod.name,
       address: prod.address,
       amount: prod.amount,
       duration: calculateTimeInDays(prod.entryDate, prod.active)
