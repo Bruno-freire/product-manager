@@ -8,33 +8,30 @@ export function calculateTimeInDays(dataEntrada: Date, ativo: boolean): number {
   // return parseFloat((diffMs / (1000 * 3600 * 24)).toFixed(2));
 }
 
-export function formatDuration(tempoEmDias: number): string {
-  // Se o tempo for zero, retornamos "0 dias"
-  if (tempoEmDias === 0) return "0 dias";
+export function formatDuration(entryDate: string): string {
+  const entry = new Date(entryDate);
+  const now = new Date();
+  const diffMs = now.getTime() - entry.getTime();
+  const tempoEmDias = diffMs / (1000 * 60 * 60 * 24);
 
-  // Se for menor que 1 hora (1 dia = 24 horas)
   if (tempoEmDias < 1 / 24) {
     const minutes = Math.round(tempoEmDias * 24 * 60);
     return `há ${minutes} minuto${minutes !== 1 ? 's' : ''}`;
-  }
-  // Se for menor que 1 dia
-  else if (tempoEmDias < 1) {
+  } else if (tempoEmDias < 1) {
     const hours = Math.round(tempoEmDias * 24);
     return `há ${hours} hora${hours !== 1 ? 's' : ''}`;
-  }
-  // Se for menor que 7 dias
-  else if (tempoEmDias < 7) {
+  } else if (tempoEmDias < 7) {
     const days = Math.round(tempoEmDias);
     return `há ${days} dia${days !== 1 ? 's' : ''}`;
-  }
-  // Se for menor que 30 dias, exibe em semanas (aproximadamente)
-  else if (tempoEmDias < 30) {
+  } else if (tempoEmDias < 30) {
     const weeks = Math.floor(tempoEmDias / 7);
     return `há ${weeks} semana${weeks !== 1 ? 's' : ''}`;
-  }
-  // Se for 30 dias ou mais, exibe em meses (aproximadamente)
-  else {
+  } else if (tempoEmDias < 365) {
     const months = Math.floor(tempoEmDias / 30);
     return `há ${months} mês${months !== 1 ? 'es' : ''}`;
+  } else {
+    const years = Math.floor(tempoEmDias / 365);
+    return `há ${years} ano${years !== 1 ? 's' : ''}`;
   }
 }
+

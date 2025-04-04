@@ -11,9 +11,9 @@ export const renderProductList = (
     <div className="overflow-y-auto max-h-60">
       {products.length > 0 ? (
         <ul className="space-y-2">
-          {products.map(({ id, name, code, amount, duration }) => (
-            <li key={id} className="text-gray-600">
-              {code} {name} {amount} {formatDuration(duration)}
+          {products.map(({ name, code, amount, entryDate }) => (
+            <li key={code} className="text-gray-600">
+              {code} {name} {amount} {formatDuration(entryDate)}
             </li>
           ))}
         </ul>

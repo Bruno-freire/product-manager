@@ -1,55 +1,25 @@
 import { NextResponse } from 'next/server';
-import { calculateTimeInDays } from '../../../../lib/utils';
-import { prisma } from '../../../../lib/prisma';
-
-type ComparedProduct = {
-  id: number;
-  code: string;
-  name: string;
-  duration: number;
-};
+import { processingListProduct } from '@/lib/processingListProduct';
 
 export async function GET() {
   try {
-    // Busca somente os campos necessários dos produtos ativos
-    const activeProducts = await prisma.product.findMany({
-      where: { active: true },
-      select: {
-        id: true,
-        code: true,
-        name: true,
-        address: true,
-        amount: true,
-        entryDate: true,
-        active: true
-      }
-    });
-
-    // Ordena os produtos pelo entryDate (do mais recente para o mais antigo)
-    const sortedActiveProducts = activeProducts.sort((a, b) => 
-      new Date(a.entryDate).getTime() - new Date(b.entryDate).getTime()
-    );
-
-    // Prepara o array de resposta, calculando a duração para cada produto
-    const existingResponse: ComparedProduct[] = sortedActiveProducts.map(prod => ({
-      id: prod.id,
-      code: prod.code,
-      name: prod.name,
-      address: prod.address,
-      amount: prod.amount,
-      duration: calculateTimeInDays(prod.entryDate, prod.active)
-    }));
-
+    // Chamada da função principal que já lida com a lógica de buscar as últimas listas
+    const { maintainedProducts, newProducts, removedProducts } = await processingListProduct();
+ 
     return NextResponse.json({
       success: true,
-      existingProducts: existingResponse
+      existingProducts: maintainedProducts,
+      newProducts,
+      removedProducts,
     });
   } catch (error: any) {
-    // Log do erro para facilitar a depuração
-    console.error('Error fetching existing products:', error);
+    console.error('Erro ao processar comparação de listas:', error);
 
     return NextResponse.json(
-      { success: false, error: error.message || 'Error fetching existing products' },
+      {
+        success: false,
+        error: error.message || 'Erro ao comparar listas de produtos',
+      },
       { status: 500 }
     );
   }

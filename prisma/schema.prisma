@@ -7,32 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Product {
-  id           Int           @id @default(autoincrement())
-  code         String        @unique
-  name  String
-  entryDate    DateTime      @default(now())
-  address      String
-  amount       String
-  active       Boolean       @default(true)
-  listProducts ListProduct[]
-
-  @@index([active])
-  @@index([entryDate])
-}
-
 model List {
   id           Int           @id @default(autoincrement())
   createdAt    DateTime      @default(now())
-  listProducts ListProduct[]
-}
-
-model ListProduct {
-  id         Int     @id @default(autoincrement())
-  listId     Int
-  productId  Int
-  list       List    @relation(fields: [listId], references: [id])
-  product    Product @relation(fields: [productId], references: [id])
-  
-  @@unique([listId, productId])
+  products     Json
 }

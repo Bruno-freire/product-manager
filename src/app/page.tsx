@@ -22,6 +22,8 @@ export default function Home() {
       const data = await response.json();
       if (data.success) {
         setExistingProducts(data.existingProducts || []);
+        setNewProducts(data.newProducts || [])
+        setRemovedProducts(data.removedProducts || [])
       } else {
         setError(data.error || "Error loading existing products");
       }

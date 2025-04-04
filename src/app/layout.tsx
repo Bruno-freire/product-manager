@@ -1,5 +1,4 @@
 import "./globals.css";
-import ReactQueryProvider from "./provider";
 
 export default function RootLayout({
   children,
@@ -12,7 +11,7 @@ export default function RootLayout({
         <title>Gerenciador de Produtos</title>
       </head>
       <body>
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        {children}
       </body>
     </html>
   );

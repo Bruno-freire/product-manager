@@ -4,5 +4,5 @@ export type ComparedProduct = {
   name: string;
   address: string,
   amount: string
-  duration: number;
+  entryDate: string;
 };
