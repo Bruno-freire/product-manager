@@ -21,6 +21,7 @@ export const compareListsOfProducts = (
     .filter((p) => newMap.has(p.code))
     .map((p) => ({
       ...p,
+      amount: newMap.get(p.code)!.amount,
       entryDate: p.entryDate,
     }));
 

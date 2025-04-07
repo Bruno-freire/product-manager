@@ -5,12 +5,12 @@ import { prisma } from "./prisma";
 export const processingListProduct = async (productList?: string) => {
   // ✅ Caso não tenha lista fornecida, compara as duas últimas do banco
   if (!productList) {
-    const lastThreeLists = await prisma.list.findMany({
+    const lastTwoLists = await prisma.list.findMany({
       orderBy: { createdAt: "desc" },
-      take: 3,
+      take: 2,
     });
 
-    if (lastThreeLists.length < 2) {
+    if (lastTwoLists.length < 2) {
       return {
         newProducts: [],
         maintainedProducts: [],
@@ -18,13 +18,7 @@ export const processingListProduct = async (productList?: string) => {
       };
     }
 
-    if(lastThreeLists[2]){
-      await prisma.list.delete({where: {
-        id: lastThreeLists[2].id
-      }})
-    }
-
-    const [lastList, penultimateList] = lastThreeLists;
+    const [lastList, penultimateList] = lastTwoLists;
     const oldListProducts = penultimateList.products as ProductItem[];
     const newListProducts = lastList.products as ProductItem[];
 
