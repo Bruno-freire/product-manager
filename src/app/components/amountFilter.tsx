@@ -1,4 +1,5 @@
 "use client";
+
 import { FilterType } from "@/lib/frontend/filterProductsByAmount";
 
 interface AmountFilterProps {

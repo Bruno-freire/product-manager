@@ -8,7 +8,7 @@ import { ComparedProduct } from "../types/comparedTypes";
 import { useState } from "react";
 import { AmountFilter } from "./amountFilter";
 
-export const renderProductList = (
+export const RenderProductList = (
   title: string,
   products: ComparedProduct[]
 ) => {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ComparedProduct } from "./types/comparedTypes";
-import { renderProductList } from "./components/renderProductList";
+import { RenderProductList } from "./components/renderProductList";
 
 export default function Home() {
   const [productList, setProductList] = useState("");
@@ -169,9 +169,9 @@ export default function Home() {
           Product Comparison
         </h2>
         <div className="flex flex-col space-y-6">
-          {renderProductList("New", newProducts)}
-          {renderProductList("Existing", existingProducts)}
-          {renderProductList("Removed", removedProducts)}
+          {RenderProductList("New", newProducts)}
+          {RenderProductList("Existing", existingProducts)}
+          {RenderProductList("Removed", removedProducts)}
         </div>
       </section>
     </main>
