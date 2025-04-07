@@ -26,8 +26,8 @@ export const processingListProduct = async (productList?: string) => {
   }
 
   // ✅ Caso uma nova lista seja recebida como string:
-  const regex =
-    /^(\d+)\s+(.+?)-\d+\s+.*?(\d{3}\.\d+\.\d+\.\d+ A)\s+(-?\d+,\d+)/gm;
+  const regex = /^(\d+)\s+(.*?)\s+13-ARAMIX\s+.*?(\d{3}\.\d+\.\d+\.\d+ A)\s+(-?\d+,\d+)/
+
 
   const results = [...productList.matchAll(regex)];
 
