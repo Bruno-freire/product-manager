@@ -7,7 +7,9 @@ import { RenderProductList } from "./components/renderProductList";
 export default function Home() {
   const [productList, setProductList] = useState("");
   const [newProducts, setNewProducts] = useState<ComparedProduct[]>([]);
-  const [existingProducts, setExistingProducts] = useState<ComparedProduct[]>([]);
+  const [existingProducts, setExistingProducts] = useState<ComparedProduct[]>(
+    []
+  );
   const [removedProducts, setRemovedProducts] = useState<ComparedProduct[]>([]);
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -61,7 +63,7 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ day1, day2 }),
         });
-        
+
         const data = await response.json();
         if (data.success) {
           setNewProducts(data.newProducts || []);
@@ -102,70 +104,98 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-blue-400 to-blue-600 p-6">
-      <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-2xl w-full">
-        <h1 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">
-          Product Manager
-        </h1>
+      <article className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-2xl w-full">
+        <header>
+          <h1 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">
+            Product Manager
+          </h1>
+        </header>
 
-        <div className="flex items-center justify-center mb-4">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={dailyMode}
-              onChange={(e) => setDailyMode(e.target.checked)}
-              className="h-5 w-5"
-            />
-            <span className="text-gray-800 font-medium">
-              Habilitar comparação diária
-            </span>
-          </label>
-        </div>
+        <form>
+          <fieldset className="flex items-center justify-center mb-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={dailyMode}
+                onChange={(e) => setDailyMode(e.target.checked)}
+                className="h-5 w-5"
+              />
+              <span className="text-gray-800 font-medium">
+                Habilitar comparação diária
+              </span>
+            </label>
+          </fieldset>
 
-        {dailyMode ? (
-          <div className="flex flex-col space-y-4 mb-4">
-            <input
-              type="date"
-              value={day1}
-              onChange={(e) => setDay1(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-              placeholder="Data do dia anterior (YYYY-MM-DD)"
-            />
-            <input
-              type="date"
-              value={day2}
-              onChange={(e) => setDay2(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-              placeholder="Data do dia atual (YYYY-MM-DD)"
-            />
-          </div>
-        ) : (
-          <textarea
-            className="w-full h-40 p-4 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-300"
-            placeholder="Cole a lista atualizada de produtos..."
-            value={productList}
-            onChange={(e) => setProductList(e.target.value)}
-          />
-        )}
+          {dailyMode ? (
+            <div className="flex flex-col space-y-4 mb-4">
+              <label>
+                <span className="sr-only">Data do dia anterior</span>
+                <input
+                  type="date"
+                  value={day1}
+                  onChange={(e) => setDay1(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+              </label>
+              <label>
+                <span className="sr-only">Data do dia atual</span>
+                <input
+                  type="date"
+                  value={day2}
+                  onChange={(e) => setDay2(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+              </label>
+            </div>
+          ) : (
+            <div className="w-full block mb-4">
+              <div className="flex w-full justify-center mb-2 ">
+                <button
+                  type="button"
+                  onClick={() => setProductList("")}
+                  className="w-1/2 py-3 cursor-pointer text-white font-semibold rounded-lg bg-green-500 hover:bg-green-600 active:scale-95 transition-all duration-150 ease-in-out"
+                >
+                  Clear
+                </button>
+              </div>
+              <textarea
+                className="w-full h-40 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                placeholder="Cole a lista atualizada de produtos..."
+                value={productList}
+                onChange={(e) => setProductList(e.target.value)}
+              />
+            </div>
+          )}
 
-        <button
-          onClick={updateList}
-          disabled={isProcessing}
-          className={`w-full py-3 text-white font-semibold rounded-lg transition-colors ${
-            isProcessing
-              ? "bg-gray-500 cursor-wait"
-              : "bg-green-500 hover:bg-green-600 cursor-pointer"
-          }`}
-        >
-          {isProcessing ? "Carregando..." : "Update List"}
-        </button>
+          <button
+            type="button"
+            onClick={updateList}
+            disabled={isProcessing}
+            className={`w-full py-3 text-white font-semibold rounded-lg transition-colors ${
+              isProcessing
+                ? "bg-gray-500 cursor-wait"
+                : "bg-green-500 hover:bg-green-600 cursor-pointer"
+            }`}
+          >
+            {isProcessing ? "Carregando..." : "Update List"}
+          </button>
+        </form>
 
         {error && (
-          <p className="mt-4 text-red-500 text-center">{error}</p>
+          <p className="mt-4 text-red-500 text-center" role="alert">
+            {error}
+          </p>
         )}
-      </div>
+      </article>
 
-      <section className="mt-8 w-full max-w-2xl">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+      <section
+        className="mt-8 w-full max-w-2xl"
+        aria-labelledby="comparison-heading"
+      >
+        <h2
+          id="comparison-heading"
+          className="text-2xl font-semibold text-gray-800 mb-4 text-center"
+        >
           Product Comparison
         </h2>
         <div className="flex flex-col space-y-6">
