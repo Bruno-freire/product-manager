@@ -9,10 +9,10 @@ interface AmountFilterProps {
 
 export const AmountFilter = ({ filter, setFilter }: AmountFilterProps) => {
   const filters: { label: string; value: FilterType }[] = [
-    { label: "All", value: "all" },
-    { label: "> 0", value: "greater" },
-    { label: "= 0", value: "equal" },
-    { label: "< 0", value: "less" },
+    { label: "Todos", value: "all" },
+    { label: "Positivos", value: "greater" },
+    { label: "Zerados", value: "equal" },
+    { label: "Negativos", value: "less" },
   ];
 
   return (
