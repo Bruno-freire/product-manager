@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ComparedProduct } from "./types/comparedTypes";
 import { RenderProductList } from "./components/renderProductList";
+import { PeriodSelector } from "./components/PeriodSelector";
 
 export default function Home() {
   const [productList, setProductList] = useState("");
@@ -127,26 +128,7 @@ export default function Home() {
           </fieldset>
 
           {dailyMode ? (
-            <div className="flex flex-col space-y-4 mb-4">
-              <label>
-                <span className="sr-only">Data do dia anterior</span>
-                <input
-                  type="date"
-                  value={day1}
-                  onChange={(e) => setDay1(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                />
-              </label>
-              <label>
-                <span className="sr-only">Data do dia atual</span>
-                <input
-                  type="date"
-                  value={day2}
-                  onChange={(e) => setDay2(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                />
-              </label>
-            </div>
+            <PeriodSelector day1={day1} day2={day2} setDay1={setDay1} setDay2={setDay2}/>
           ) : (
             <div className="w-full block mb-4">
               <div className="flex w-full justify-center mb-2 ">
