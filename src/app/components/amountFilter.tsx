@@ -16,13 +16,16 @@ export const AmountFilter = ({ filter, setFilter }: AmountFilterProps) => {
   ];
 
   return (
-    <div className="flex gap-2 mb-2">
+    <div className="flex gap-2 mb-3" role="tablist" aria-label="Filtro de quantidade">
       {filters.map(({ label, value }) => (
         <button
           key={value}
           onClick={() => setFilter(value)}
-          className={`px-2 py-1 rounded cursor-pointer transition ${
-            filter === value ? "bg-blue-500 text-white" : "bg-white text-gray-700 border border-gray-300"
+          aria-pressed={filter === value}
+          className={`px-3 py-1 rounded-full cursor-pointer transition duration-150 transform ${
+            filter === value
+              ? "bg-blue-600 text-white shadow-md scale-100"
+              : "bg-white text-gray-700 border border-gray-200 hover:shadow-sm hover:-translate-y-0.5"
           }`}
         >
           {label}
