@@ -207,7 +207,7 @@ export default function Home() {
                   onClick={() => setProductList("")}
                   className="w-1/2 py-3 cursor-pointer text-white font-semibold rounded-lg bg-green-500 hover:bg-green-600 active:scale-95 transition-all"
                 >
-                  Clear
+                  Clean
                 </button>
               </div>
 
