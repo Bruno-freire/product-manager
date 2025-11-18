@@ -154,7 +154,7 @@ export default function Home() {
             <div className="flex justify-between gap-3">
               <button
                 onClick={() => setConfirmRollbackOpen(false)}
-                className="flex-1 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-medium transition"
+                className="flex-1 cursor-pointer py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-medium transition"
               >
                 Cancelar
               </button>
@@ -164,7 +164,7 @@ export default function Home() {
                   rollback();
                   setConfirmRollbackOpen(false);
                 }}
-                className="flex-1 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold shadow-md transition"
+                className="flex-1 cursor-pointer py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold shadow-md transition"
               >
                 Confirmar
               </button>
@@ -247,7 +247,7 @@ export default function Home() {
               type="button"
               onClick={updateList}
               disabled={isProcessing}
-              className={`flex-1 py-3 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 py-3 cursor-pointer text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 ${
                 isProcessing
                   ? "bg-gray-400 cursor-wait"
                   : "bg-green-600 hover:bg-green-700"
@@ -286,10 +286,10 @@ export default function Home() {
               type="button"
               onClick={() => previousState && setConfirmRollbackOpen(true)}
               disabled={!previousState}
-              className={`flex-1 py-3 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-3 rounded-lg font-semibold text-white cursor-pointer transition-all flex items-center justify-center gap-2 ${
                 previousState
                   ? "bg-yellow-500 hover:bg-yellow-600"
-                  : "bg-gray-300 cursor-not-allowed"
+                  : "bg-gray-300 "
               }`}
             >
               <svg
