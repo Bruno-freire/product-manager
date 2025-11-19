@@ -26,14 +26,14 @@ export function SnapshotSelector({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onPick(s.id, "left")}
-                  className={`text-sm px-3 py-1 rounded ${selected.left === s.id ? "bg-yellow-500 text-white" : "bg-white border"}`}
+                  className={`text-sm cursor-pointer px-3 py-1 rounded ${selected.left === s.id ? "bg-yellow-500 text-white" : "bg-white border"}`}
                 >
                   Left
                 </button>
 
                 <button
                   onClick={() => onPick(s.id, "right")}
-                  className={`text-sm px-3 py-1 rounded ${selected.right === s.id ? "bg-yellow-500 text-white" : "bg-white border"}`}
+                  className={`text-sm cursor-pointer px-3 py-1 rounded ${selected.right === s.id ? "bg-yellow-500 text-white" : "bg-white border"}`}
                 >
                   Right
                 </button>

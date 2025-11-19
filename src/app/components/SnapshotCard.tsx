@@ -19,7 +19,7 @@ export function SnapshotCard({ id, createdAt, onSelect }: { id: string; createdA
           <p className="text-sm px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded">Ver</p>
         </Link>
 
-        <button onClick={() => onSelect?.(id)} className="text-sm px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded">
+        <button onClick={() => onSelect?.(id)} className="text-sm px-3 py-1 cursor-pointer bg-green-500 hover:bg-green-600 text-white rounded">
           Selecionar
         </button>
       </div>

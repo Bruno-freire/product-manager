@@ -57,8 +57,6 @@ export default function Home() {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
-      await fetch("/api/products/history", { method: "GET" });
-
       const data = await response.json();
       if (data.success) {
         saveCurrentState();
@@ -136,7 +134,6 @@ export default function Home() {
       setIsProcessing(false);
     }
   };
-
   return (
     <main className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-8">
       {/* MODAL DE CONFIRMAÇÃO */}
@@ -336,9 +333,18 @@ export default function Home() {
           </div>
 
           {/* keep using your renderer exactly the same way */}
-          {RenderProductList("New", newProducts)}
-          {RenderProductList("Existing", existingProducts)}
-          {RenderProductList("Removed", removedProducts)}
+            <RenderProductList
+              title="New"
+              products={newProducts}
+            />
+              <RenderProductList
+                title="New"
+                products={existingProducts}
+              />
+                <RenderProductList
+                  title="New"
+                  products={removedProducts}
+                />
         </div>
       </section>
     </main>
