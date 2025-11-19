@@ -6,21 +6,31 @@ import {
 } from "@/lib/frontend/filterProductsByAmount";
 import { formatDuration } from "../../lib/backend/utils";
 import { ComparedProduct } from "../types/comparedTypes";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AmountFilter } from "./amountFilter";
 
 interface RenderProductListProps {
   title: string;
   products: ComparedProduct[];
+  onFiltered?: (filtered: ComparedProduct[]) => void;
 }
 
 export const RenderProductList = ({
   title,
   products,
+  onFiltered,
 }: RenderProductListProps) => {
   const [filter, setFilter] = useState<FilterType>("all");
-  const filteredProducts = filterProductsByAmount(products, filter);
+  const filteredProducts = useMemo(
+    () => filterProductsByAmount(products, filter),
+    [products, filter]
+  );
 
+  useEffect(() => {
+    if (onFiltered) {
+      onFiltered(filteredProducts);
+    }
+  }, [filteredProducts, onFiltered]);
   return (
     <div className="w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100">
       <div className="flex items-start justify-between">

@@ -16,6 +16,12 @@ export default function Home() {
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const [filteredNew, setFilteredNew] = useState<ComparedProduct[]>([]);
+  const [filteredExisting, setFilteredExisting] = useState<ComparedProduct[]>(
+    []
+  );
+  const [filteredRemoved, setFilteredRemoved] = useState<ComparedProduct[]>([]);
+
   // Estado de rollback
   const [previousState, setPreviousState] = useState<{
     newProducts: ComparedProduct[];
@@ -96,10 +102,10 @@ export default function Home() {
         });
 
         const data = await response.json();
-
+        console.log(data.maintainedProducts);
         if (data.success) {
           setNewProducts(data.newProducts || []);
-          setExistingProducts(data.existingProducts || []);
+          setExistingProducts(data.maintainedProducts || []);
           setRemovedProducts(data.removedProducts || []);
         } else {
           setError(data.error || "Erro desconhecido");
@@ -176,7 +182,8 @@ export default function Home() {
             Product Manager
           </h1>
           <p className="text-sm text-slate-600">
-            Cole a lista ou use comparações diárias — visual moderno e interativo.
+            Cole a lista ou use comparações diárias — visual moderno e
+            interativo.
           </p>
         </header>
 
@@ -328,23 +335,14 @@ export default function Home() {
           <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-100">
             <p className="text-gray-700 font-medium">Total Products:</p>
             <span className="text-gray-900 font-semibold">
-              {newProducts.length + existingProducts.length}
+              {filteredNew.length + filteredExisting.length + filteredRemoved.length}
             </span>
           </div>
 
           {/* keep using your renderer exactly the same way */}
-            <RenderProductList
-              title="New"
-              products={newProducts}
-            />
-              <RenderProductList
-                title="New"
-                products={existingProducts}
-              />
-                <RenderProductList
-                  title="New"
-                  products={removedProducts}
-                />
+          <RenderProductList title="New" products={newProducts} onFiltered={setFilteredNew}/>
+          <RenderProductList title="Existing" products={existingProducts} onFiltered={setFilteredExisting}/>
+          <RenderProductList title="Removed" products={removedProducts} onFiltered={setFilteredRemoved}/>
         </div>
       </section>
     </main>
