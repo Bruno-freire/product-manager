@@ -182,8 +182,7 @@ export default function Home() {
             Product Manager
           </h1>
           <p className="text-sm text-slate-600">
-            Cole a lista ou use comparações diárias — visual moderno e
-            interativo.
+            Cole a lista ou use comparações diárias
           </p>
         </header>
 
