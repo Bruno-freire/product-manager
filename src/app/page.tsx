@@ -342,7 +342,7 @@ export default function Home() {
           {/* keep using your renderer exactly the same way */}
           <RenderProductList title="New" products={newProducts} onFiltered={setFilteredNew}/>
           <RenderProductList title="Existing" products={existingProducts} onFiltered={setFilteredExisting}/>
-          <RenderProductList title="Removed" products={removedProducts} onFiltered={setFilteredRemoved}/>
+          <RenderProductList title="Removed" products={removedProducts} />
         </div>
       </section>
     </main>
