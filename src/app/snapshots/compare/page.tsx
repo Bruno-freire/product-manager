@@ -82,7 +82,7 @@ export default function SnapshotsComparePage() {
         <div className="grid grid-cols-[1fr_2fr] gap-4 min-h-[400px]">
           {/* Left column: selector */}
           <div className="col-span-1 bg-white p-4 rounded shadow max-h-[60vh] overflow-auto">
-            <h3 className="font-semibold mb-3">Left</h3>
+            <h3 className="font-semibold mb-3">Snapshots</h3>
             <SnapshotSelector
               snapshots={snapshots}
               onPick={onPick}
