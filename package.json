@@ -13,7 +13,7 @@
     "@prisma/client": "^6.5.0",
     "@types/p-limit": "^2.1.0",
     "@vercel/speed-insights": "^1.2.0",
-    "next": "^16.0.3",
+    "next": "16.0.10",
     "p-limit": "^6.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
