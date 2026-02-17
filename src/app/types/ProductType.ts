@@ -4,4 +4,5 @@ export type ProductItem = {
   amount: string;
   address: string;
   entryDate?: string; 
+  store: string;
 };

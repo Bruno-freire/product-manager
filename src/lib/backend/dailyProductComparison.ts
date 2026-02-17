@@ -9,20 +9,27 @@ interface TypedList {
   products: ProductItem[];
 }
 
-export const compareDailyProductLists = async (day1: string, day2: string) => {
+export const compareDailyProductLists = async (
+  store: string,
+  day1: string,
+  day2: string
+) => {
+  if (!store) {
+    throw new Error("Store obrigatória.");
+  }
+
   try {
-    // Cria os limites de data para cada dia
+    // 🔎 Intervalos de datas
     const startDay1 = new Date(`${day1}T00:00:00.000Z`);
     const endDay1 = new Date(`${day1}T23:59:59.999Z`);
-    endDay1.setHours(23, 59, 59, 999);
 
     const startDay2 = new Date(`${day2}T00:00:00.000Z`);
     const endDay2 = new Date(`${day2}T23:59:59.999Z`);
-    endDay2.setHours(23, 59, 59, 999);
 
-    // Consulta todas as listas registradas em cada dia
+    // 🔒 Buscar listas APENAS da store correta
     const listsDay1 = await prisma.list.findMany({
       where: {
+        store,
         createdAt: {
           gte: startDay1,
           lte: endDay1,
@@ -33,6 +40,7 @@ export const compareDailyProductLists = async (day1: string, day2: string) => {
 
     const listsDay2 = await prisma.list.findMany({
       where: {
+        store,
         createdAt: {
           gte: startDay2,
           lte: endDay2,
@@ -51,7 +59,6 @@ export const compareDailyProductLists = async (day1: string, day2: string) => {
       products: list.products as ProductItem[],
     }));
 
-    // Agrega as listas de cada dia em uma única lista de produtos
     const aggregatedDay1 = aggregateDailyProducts(listsDay1Typed);
     const aggregatedDay2 = aggregateDailyProducts(listsDay2Typed);
 
@@ -59,7 +66,7 @@ export const compareDailyProductLists = async (day1: string, day2: string) => {
       compareListsOfProducts(
         aggregatedDay1,
         aggregatedDay2,
-        true // atualiza o entryDate apenas para novos produtos (mantém o de mantidos)
+        true
       );
 
     return {

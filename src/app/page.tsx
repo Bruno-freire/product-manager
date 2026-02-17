@@ -5,12 +5,14 @@ import { ComparedProduct } from "./types/comparedTypes";
 import { RenderProductList } from "./components/renderProductList";
 import { PeriodSelector } from "./components/PeriodSelector";
 import Link from "next/link";
+import { getLoggedUser } from "@/lib/getUser";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [productList, setProductList] = useState("");
   const [newProducts, setNewProducts] = useState<ComparedProduct[]>([]);
   const [existingProducts, setExistingProducts] = useState<ComparedProduct[]>(
-    []
+    [],
   );
   const [removedProducts, setRemovedProducts] = useState<ComparedProduct[]>([]);
   const [error, setError] = useState("");
@@ -18,26 +20,29 @@ export default function Home() {
 
   const [filteredNew, setFilteredNew] = useState<ComparedProduct[]>([]);
   const [filteredExisting, setFilteredExisting] = useState<ComparedProduct[]>(
-    []
+    [],
   );
   const [filteredRemoved, setFilteredRemoved] = useState<ComparedProduct[]>([]);
 
-  // Estado de rollback
   const [previousState, setPreviousState] = useState<{
     newProducts: ComparedProduct[];
     existingProducts: ComparedProduct[];
     removedProducts: ComparedProduct[];
   } | null>(null);
 
-  // Modal de confirmação
   const [confirmRollbackOpen, setConfirmRollbackOpen] = useState(false);
 
-  // Modo diário
   const [dailyMode, setDailyMode] = useState(false);
   const [day1, setDay1] = useState("");
   const [day2, setDay2] = useState("");
 
-  // Salva o estado atual para rollback
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/logout", { method: "POST" });
+    router.push("/login");
+  };
+
   const saveCurrentState = () => {
     setPreviousState({
       newProducts: [...newProducts],
@@ -46,7 +51,6 @@ export default function Home() {
     });
   };
 
-  // Rollback (Undo)
   const rollback = () => {
     if (!previousState) return;
 
@@ -56,14 +60,11 @@ export default function Home() {
     setPreviousState(null);
   };
 
-  // Busca padrão
-  const fetchExistingProducts = async () => {
+  const fetchExistingProducts = async (store: string) => {
     try {
-      const response = await fetch("/api/products/existing", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(`/api/products/existing?store=${store}`);
       const data = await response.json();
+
       if (data.success) {
         saveCurrentState();
         setExistingProducts(data.existingProducts || []);
@@ -78,10 +79,20 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchExistingProducts();
-  }, []);
+    const user = getLoggedUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    fetchExistingProducts(user.store);
+  }, [router]);
 
   const updateList = async () => {
+    const user = getLoggedUser();
+    if (!user) return router.push("/login");
+
     setIsProcessing(true);
     setError("");
 
@@ -98,11 +109,11 @@ export default function Home() {
         const response = await fetch("/api/products/daily", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ day1, day2 }),
+          body: JSON.stringify({ day1, day2, store: user.store }),
         });
 
         const data = await response.json();
-        console.log(data.maintainedProducts);
+
         if (data.success) {
           setNewProducts(data.newProducts || []);
           setExistingProducts(data.maintainedProducts || []);
@@ -114,14 +125,14 @@ export default function Home() {
         if (productList.trim().length === 0) {
           setNewProducts([]);
           setRemovedProducts([]);
-          await fetchExistingProducts();
+          await fetchExistingProducts(user.store);
           return;
-        }
+        } 
 
-        const response = await fetch("/api/products/", {
+        const response = await fetch("/api/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productList }),
+          body: JSON.stringify({ store: user.store, productList }),
         });
 
         const data = await response.json();
@@ -140,34 +151,31 @@ export default function Home() {
       setIsProcessing(false);
     }
   };
+
   return (
     <main className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-8">
-      {/* MODAL DE CONFIRMAÇÃO */}
       {confirmRollbackOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200 scale-100">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md">
             <h3 className="text-xl font-bold text-gray-900 text-center mb-3">
               Confirmar Rollback?
             </h3>
-
             <p className="text-gray-600 text-center mb-6">
               Isso irá restaurar o estado anterior da lista de produtos.
             </p>
-
             <div className="flex justify-between gap-3">
               <button
                 onClick={() => setConfirmRollbackOpen(false)}
-                className="flex-1 cursor-pointer py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-medium transition"
+                className="flex-1 py-2 border border-gray-200 rounded-lg hover:bg-gray-50"
               >
                 Cancelar
               </button>
-
               <button
                 onClick={() => {
                   rollback();
                   setConfirmRollbackOpen(false);
                 }}
-                className="flex-1 cursor-pointer py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold shadow-md transition"
+                className="flex-1 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg"
               >
                 Confirmar
               </button>
@@ -176,9 +184,9 @@ export default function Home() {
         </div>
       )}
 
-      <article className="w-full max-w-3xl bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-gray-100">
-        <header className="mb-6 text-center">
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-1">
+      <article className="w-full max-w-3xl bg-white rounded-2xl shadow-xl p-8 border border-gray-100 relative">
+        <header className="mb-4 text-center">
+          <h1 className="text-4xl font-extrabold text-slate-900">
             Product Manager
           </h1>
           <p className="text-sm text-slate-600">
@@ -186,14 +194,24 @@ export default function Home() {
           </p>
         </header>
 
+        <div className="flex justify-center mb-4">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="px-4 py-2 cursor-pointer bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow transition-colors duration-200"
+          >
+            Logout
+          </button>
+        </div>
+
         <form>
           <fieldset className="flex items-center justify-center mb-4">
-            <label className="flex items-center space-x-3 cursor-pointer select-none">
+            <label className="flex items-center space-x-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={dailyMode}
                 onChange={(e) => setDailyMode(e.target.checked)}
-                className="h-5 w-5 rounded accent-blue-600"
+                className="h-5 w-5 accent-blue-600"
               />
               <span className="text-slate-800 font-medium">
                 Habilitar comparação diária
@@ -209,19 +227,17 @@ export default function Home() {
               setDay2={setDay2}
             />
           ) : (
-            <div className="w-full block mb-4">
-              <div className="flex w-full justify-center mb-3">
-                <button
-                  type="button"
-                  onClick={() => setProductList("")}
-                  className="w-1/2 py-3 cursor-pointer text-white font-semibold rounded-lg bg-green-600 hover:bg-green-700 active:scale-95 transition-transform shadow"
-                >
-                  Clean
-                </button>
-              </div>
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={() => setProductList("")}
+                className="w-full cursor-pointer py-3 mb-3 text-white bg-green-600 hover:bg-green-700 rounded-lg"
+              >
+                Clean
+              </button>
 
               <textarea
-                className="w-full h-44 p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 transition-shadow shadow-sm"
+                className="w-full h-44 p-4 border border-gray-200 rounded-lg"
                 placeholder="Cole a lista atualizada de produtos..."
                 value={productList}
                 onChange={(e) => setProductList(e.target.value)}
@@ -232,83 +248,41 @@ export default function Home() {
           <div className="flex gap-3 mt-4">
             <Link
               href="/snapshots"
-              className="flex-1 py-3 text-center bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-shadow shadow"
+              className="flex-1 py-3 text-center bg-indigo-600 text-white rounded-lg"
             >
               Ver Snapshots
             </Link>
 
             <Link
               href="/snapshots/compare"
-              className="flex-1 py-3 text-center bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-shadow shadow"
+              className="flex-1 py-3 text-center bg-blue-600 text-white rounded-lg"
             >
               Comparar com Snapshot
             </Link>
           </div>
 
-          <div className="flex space-x-3 mt-4">
+          <div className="flex gap-3 mt-4">
             <button
               type="button"
               onClick={updateList}
               disabled={isProcessing}
-              className={`flex-1 py-3 cursor-pointer text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                isProcessing
-                  ? "bg-gray-400 cursor-wait"
-                  : "bg-green-600 hover:bg-green-700"
+              className={`flex-1 py-3 cursor-pointer text-white rounded-lg ${
+                isProcessing ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"
               }`}
             >
-              {isProcessing ? (
-                <>
-                  <svg
-                    className="w-5 h-5 animate-spin"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                    />
-                  </svg>
-                  Carregando...
-                </>
-              ) : (
-                "Update List"
-              )}
+              {isProcessing ? "Carregando..." : "Update List"}
             </button>
 
-            {/* Botão que abre o modal */}
             <button
               type="button"
               onClick={() => previousState && setConfirmRollbackOpen(true)}
               disabled={!previousState}
-              className={`flex-1 py-3 rounded-lg font-semibold text-white cursor-pointer transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-3 rounded-lg text-white ${
                 previousState
                   ? "bg-yellow-500 hover:bg-yellow-600"
-                  : "bg-gray-300 "
+                  : "bg-gray-300"
               }`}
             >
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden
-              >
-                <path
-                  d="M12 5v7l5 3"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
               Rollback
             </button>
           </div>
@@ -319,28 +293,31 @@ export default function Home() {
         )}
       </article>
 
-      <section
-        className="mt-8 w-full max-w-3xl mx-auto"
-        aria-labelledby="comparison-heading"
-      >
-        <h2
-          id="comparison-heading"
-          className="text-2xl font-semibold text-slate-800 mb-6 text-center"
-        >
+      <section className="mt-8 w-full max-w-3xl">
+        <h2 className="text-2xl font-semibold text-slate-800 mb-6 text-center">
           Product Comparison
         </h2>
 
         <div className="flex flex-col space-y-6 p-6 rounded-2xl shadow-sm border border-gray-100 bg-white">
-          <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-100">
-            <p className="text-gray-700 font-medium">Total Products:</p>
-            <span className="text-gray-900 font-semibold">
-              {filteredNew.length + filteredExisting.length + filteredRemoved.length}
+          <div className="flex justify-between bg-gray-50 p-4 rounded-lg">
+            <p>Total Products:</p>
+            <span>
+              {filteredNew.length +
+                filteredExisting.length +
+                filteredRemoved.length}
             </span>
           </div>
 
-          {/* keep using your renderer exactly the same way */}
-          <RenderProductList title="New" products={newProducts} onFiltered={setFilteredNew}/>
-          <RenderProductList title="Existing" products={existingProducts} onFiltered={setFilteredExisting}/>
+          <RenderProductList
+            title="New"
+            products={newProducts}
+            onFiltered={setFilteredNew}
+          />
+          <RenderProductList
+            title="Existing"
+            products={existingProducts}
+            onFiltered={setFilteredExisting}
+          />
           <RenderProductList title="Removed" products={removedProducts} />
         </div>
       </section>

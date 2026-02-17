@@ -14,6 +14,8 @@
     "@types/p-limit": "^2.1.0",
     "@vercel/speed-insights": "^1.2.0",
     "next": "16.0.10",
+    "bcrypt": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
     "p-limit": "^6.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -21,6 +23,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
