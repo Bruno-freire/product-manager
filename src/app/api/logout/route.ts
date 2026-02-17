@@ -6,7 +6,7 @@ export async function POST() {
     name: "token",
     value: "",
     path: "/",
-    maxAge: 0, // expira imediatamente
+    maxAge: 0,
   });
   return response;
 }
