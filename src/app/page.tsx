@@ -5,7 +5,7 @@ import { ComparedProduct } from "./types/comparedTypes";
 import { RenderProductList } from "./components/renderProductList";
 import { PeriodSelector } from "./components/PeriodSelector";
 import Link from "next/link";
-import { getLoggedUser } from "@/lib/getUser";
+import { getLoggedUser, LoggedUser } from "@/lib/getUser";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -31,18 +31,19 @@ export default function Home() {
   } | null>(null);
 
   const [confirmRollbackOpen, setConfirmRollbackOpen] = useState(false);
-
   const [dailyMode, setDailyMode] = useState(false);
   const [day1, setDay1] = useState("");
   const [day2, setDay2] = useState("");
 
   const router = useRouter();
 
+  // Logout
   const handleLogout = async () => {
     await fetch("/api/logout", { method: "POST" });
     router.push("/login");
   };
 
+  // Salvar estado atual para rollback
   const saveCurrentState = () => {
     setPreviousState({
       newProducts: [...newProducts],
@@ -51,15 +52,16 @@ export default function Home() {
     });
   };
 
+  // Restaurar estado anterior
   const rollback = () => {
     if (!previousState) return;
-
     setNewProducts(previousState.newProducts);
     setExistingProducts(previousState.existingProducts);
     setRemovedProducts(previousState.removedProducts);
     setPreviousState(null);
   };
 
+  // Buscar produtos existentes
   const fetchExistingProducts = async (store: string) => {
     try {
       const response = await fetch(`/api/products/existing?store=${store}`);
@@ -71,32 +73,38 @@ export default function Home() {
         setNewProducts(data.newProducts || []);
         setRemovedProducts(data.removedProducts || []);
       } else {
-        setError(data.error || "Error loading existing products");
+        setError(data.error || "Erro ao carregar produtos existentes");
       }
     } catch (err: any) {
       setError(err.message);
     }
   };
 
+  // Início do componente: verificar login
   useEffect(() => {
-    const user = getLoggedUser();
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    fetchExistingProducts(user.store);
+    const init = async () => {
+      const user: LoggedUser | null = await getLoggedUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      await fetchExistingProducts(user.store);
+    };
+    init();
   }, [router]);
 
+  // Atualizar lista de produtos
   const updateList = async () => {
-    const user = getLoggedUser();
-    if (!user) return router.push("/login");
-
     setIsProcessing(true);
     setError("");
 
     try {
+      const user: LoggedUser | null = await getLoggedUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
       saveCurrentState();
 
       if (dailyMode) {
@@ -113,7 +121,6 @@ export default function Home() {
         });
 
         const data = await response.json();
-
         if (data.success) {
           setNewProducts(data.newProducts || []);
           setExistingProducts(data.maintainedProducts || []);
@@ -127,7 +134,7 @@ export default function Home() {
           setRemovedProducts([]);
           await fetchExistingProducts(user.store);
           return;
-        } 
+        }
 
         const response = await fetch("/api/products", {
           method: "POST",
@@ -136,7 +143,6 @@ export default function Home() {
         });
 
         const data = await response.json();
-
         if (data.success) {
           setNewProducts(data.newProducts || []);
           setExistingProducts(data.existingProducts || []);
@@ -154,6 +160,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-8">
+      {/* Modal rollback */}
       {confirmRollbackOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md">
@@ -184,6 +191,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* Header e Logout */}
       <article className="w-full max-w-3xl bg-white rounded-2xl shadow-xl p-8 border border-gray-100 relative">
         <header className="mb-4 text-center">
           <h1 className="text-4xl font-extrabold text-slate-900">
@@ -235,7 +243,6 @@ export default function Home() {
               >
                 Clean
               </button>
-
               <textarea
                 className="w-full h-44 p-4 border border-gray-200 rounded-lg"
                 placeholder="Cole a lista atualizada de produtos..."
@@ -252,7 +259,6 @@ export default function Home() {
             >
               Ver Snapshots
             </Link>
-
             <Link
               href="/snapshots/compare"
               className="flex-1 py-3 text-center bg-blue-600 text-white rounded-lg"
@@ -272,7 +278,6 @@ export default function Home() {
             >
               {isProcessing ? "Carregando..." : "Update List"}
             </button>
-
             <button
               type="button"
               onClick={() => previousState && setConfirmRollbackOpen(true)}
@@ -293,11 +298,11 @@ export default function Home() {
         )}
       </article>
 
+      {/* Seção de comparação */}
       <section className="mt-8 w-full max-w-3xl">
         <h2 className="text-2xl font-semibold text-slate-800 mb-6 text-center">
           Product Comparison
         </h2>
-
         <div className="flex flex-col space-y-6 p-6 rounded-2xl shadow-sm border border-gray-100 bg-white">
           <div className="flex justify-between bg-gray-50 p-4 rounded-lg">
             <p>Total Products:</p>
@@ -318,7 +323,11 @@ export default function Home() {
             products={existingProducts}
             onFiltered={setFilteredExisting}
           />
-          <RenderProductList title="Removed" products={removedProducts} />
+          <RenderProductList
+            title="Removed"
+            products={removedProducts}
+            onFiltered={setFilteredRemoved}
+          />
         </div>
       </section>
     </main>
