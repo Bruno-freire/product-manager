@@ -24,21 +24,19 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
-      
-      if (!res.ok) {
+
+      if (!res.ok || !data.user) {
         setError(data.error || "Erro ao autenticar.");
         return;
       }
 
-      // Salva usuário no localStorage
-      if (!data.user) {
-        setError("Resposta inválida do servidor.");
-        return;
+      // Salva usuário no localStorage (para leitura pelo Client Component)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
 
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      router.push("/");
+      // Redireciona para a home após login
+      router.replace("/"); // replace evita histórico desnecessário
     } catch (err: any) {
       setError("Erro inesperado.");
     } finally {
