@@ -11,11 +11,13 @@ export default function SnapshotsComparePage() {
     { id: string; createdAt: string }[]
   >([]);
   const [selected, setSelected] = useState<{ left?: string; right?: string }>(
-    {}
+    {},
   );
   const [comparison, setComparison] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const [filteredNew, setFilteredNew] = useState<any[]>([]);
+  const [filteredExisting, setFilteredExisting] = useState<any[]>([]);
 
   const fetchList = async (p = page) => {
     setLoading(true);
@@ -67,7 +69,7 @@ export default function SnapshotsComparePage() {
   return (
     <main className="min-h-screen p-6 bg-gradient-to-r from-slate-100 to-slate-200">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
           <Link href="/snapshots">
             <p className="px-3 py-2 rounded bg-gray-800 text-white">
               Voltar Snapshots
@@ -79,15 +81,38 @@ export default function SnapshotsComparePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-[1fr_2fr] gap-4 min-h-[400px]">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6 min-h-[400px]">
           {/* Left column: selector */}
-          <div className="col-span-1 bg-white p-4 rounded shadow max-h-[60vh] overflow-auto">
+          <div className="col-span-1 flex flex-col">
             <h3 className="font-semibold mb-3">Snapshots</h3>
-            <SnapshotSelector
-              snapshots={snapshots}
-              onPick={onPick}
-              selected={selected}
-            />
+
+            {/* Card branco apenas na lista */}
+            <div className="bg-white p-4 rounded shadow flex-1 overflow-auto max-h-[450px]">
+              <SnapshotSelector
+                snapshots={snapshots}
+                onPick={onPick}
+                selected={selected}
+              />
+            </div>
+
+            {/* Botões fora do card branco */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:justify-between mt-4">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1 bg-white border rounded cursor-pointer"
+              >
+                Prev
+              </button>
+              <div className="flex justify-between">
+                <div className="text-sm text-gray-600">Página {page}</div>
+              </div>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                className="px-3 py-1 bg-white border rounded cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
           </div>
 
           {/* Center column: result */}
@@ -126,34 +151,34 @@ export default function SnapshotsComparePage() {
                   Right: {new Date(comparison.right.createdAt).toLocaleString()}
                 </div>
 
+                <div className="w-full flex justify-between items-center bg-gray-50 p-2">
+                  <span className="font-medium">Total:</span>
+                  <span className="font-semibold">
+                    {filteredNew.length + filteredExisting.length}
+                  </span>
+                </div>
+
                 <div className="space-y-3">
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-medium">
-                        New ({comparison.newProducts.length})
-                      </h4>
                       <RenderProductList
                         title="New"
                         products={comparison.newProducts}
+                        onFiltered={setFilteredNew}
                       />
                     </div>
 
                     <div>
-                      <h4 className="font-medium">
-                        Existing ({comparison.existingProducts.length})
-                      </h4>
                       <RenderProductList
-                        title="New"
+                        title="Existing"
                         products={comparison.existingProducts}
+                        onFiltered={setFilteredExisting}
                       />
                     </div>
 
                     <div>
-                      <h4 className="font-medium">
-                        Removed ({comparison.removedProducts.length})
-                      </h4>
                       <RenderProductList
-                        title="New"
+                        title="Removed"
                         products={comparison.removedProducts}
                       />
                     </div>
@@ -161,23 +186,6 @@ export default function SnapshotsComparePage() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-        <div className="flex justify-between">
-          <div className="text-sm text-gray-600">Página {page}</div>
-          <div className="space-x-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="px-3 py-1 bg-white border rounded"
-            >
-              Prev
-            </button>
-            <button
-              onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1 bg-white border rounded"
-            >
-              Next
-            </button>
           </div>
         </div>
       </div>
