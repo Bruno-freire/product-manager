@@ -6,9 +6,6 @@ import { SignJWT } from "jose";
 export async function POST(req: Request) {
   console.log("🔐 [LOGIN] Requisição recebida");
 
-<<<<<<< HEAD
-  if (!email || !password) {
-=======
   try {
     const body = await req.json();
     const { email, password } = body;
@@ -41,10 +38,7 @@ export async function POST(req: Request) {
 
     if (!passwordMatch) {
       console.log("❌ Senha incorreta para usuário:", user.id);
-      return NextResponse.json(
-        { error: "Senha incorreta" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Senha incorreta" }, { status: 401 });
     }
 
     console.log("✅ Senha válida");
@@ -92,46 +86,9 @@ export async function POST(req: Request) {
     return response; // IMPORTANTE: retornar response, não token
   } catch (error: any) {
     console.error("🔥 Erro inesperado no login:", error.message);
->>>>>>> 991a8ca (fix(auth): validate JWT using jose and secure API routes)
     return NextResponse.json(
       { error: "Erro interno no servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-<<<<<<< HEAD
-
-  const user = await prisma.user.findUnique({ where: { email } });
-
-  if (!user) {
-    return NextResponse.json(
-      { error: "Usuário não encontrado" },
-      { status: 401 },
-    );
-  }
-
-  const passwordMatch = await bcrypt.compare(password, user.password);
-
-  if (!passwordMatch) {
-    return NextResponse.json({ error: "Senha incorreta" }, { status: 401 });
-  }
-
-  const response = NextResponse.json({
-    success: true,
-    user: { id: user.id, store: user.store, name: user.name },
-  });
-
-  // Cookie seguro
-  response.cookies.set({
-    name: "token",
-    value: JSON.stringify({ id: user.id, store: user.store, name: user.name }),
-    httpOnly: true,
-    path: "/",
-    maxAge: 60 * 60 * 24, // 1 dia
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
-
-  return response;
-=======
->>>>>>> 991a8ca (fix(auth): validate JWT using jose and secure API routes)
 }
