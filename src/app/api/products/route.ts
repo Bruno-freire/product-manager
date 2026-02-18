@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { processingListProduct } from "@/lib/backend/processingListProduct";
 import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 
 export async function POST(request: Request) {
   try {
-    const token = (await cookies()).get("token")?.value;
+    const cookieStore = cookies();
+    const token = (await cookieStore).get("token")?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -13,7 +15,25 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = JSON.parse(token);
+    if (!process.env.JWT_SECRET) {
+      return NextResponse.json(
+        { success: false, error: "Server configuration error" },
+        { status: 500 },
+      );
+    }
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+
+    const store = payload.store as string;
+
+    if (!store) {
+      return NextResponse.json(
+        { success: false, error: "Usuário não autenticado" },
+        { status: 401 },
+      );
+    }
+
     const { productList } = await request.json();
 
     if (!productList) {
@@ -23,15 +43,8 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: "Usuário não autenticado" },
-        { status: 401 },
-      );
-    }
-
     const { maintainedProducts, newProducts, removedProducts } =
-      await processingListProduct(user.store, productList);
+      await processingListProduct(store, productList);
 
     if (
       !maintainedProducts.length &&
@@ -54,10 +67,12 @@ export async function POST(request: Request) {
       removedProducts,
     });
   } catch (error: any) {
+    console.error("Erro ao processar lista de produtos:", error);
+
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "Error processing the product list",
+        error: "Error processing the product list",
       },
       { status: 500 },
     );

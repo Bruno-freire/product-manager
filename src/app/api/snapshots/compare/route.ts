@@ -1,46 +1,47 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/backend/prisma";
 import { compareListsOfProducts } from "@/lib/backend/comparedLists";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 
 export async function POST(request: Request) {
   try {
-    const token = request.headers
-      .get("cookie")
-      ?.split("; ")
-      .find((c) => c.startsWith("token="))
-      ?.split("=")[1];
-    if (!token)
+    const token = (await cookies()).get("token")?.value;
+
+    if (!token) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
-
-    let user;
-    try {
-      user = JSON.parse(decodeURIComponent(token));
-    } catch {
-      return NextResponse.json(
-        { success: false, error: "Invalid token" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
-    const store = user.store;
-    if (!store)
+    if (!process.env.JWT_SECRET) {
+      return NextResponse.json(
+        { success: false, error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    const store = payload.store as string;
+
+    if (!store) {
       return NextResponse.json(
         { success: false, error: "Store obrigatória" },
-        { status: 400 },
+        { status: 400 }
       );
+    }
 
-    const body = await request.json();
-    const { leftId, rightId } = body;
-    if (!leftId || !rightId)
+    const { leftId, rightId } = await request.json();
+
+    if (!leftId || !rightId) {
       return NextResponse.json(
         { success: false, error: "leftId and rightId are required" },
-        { status: 400 },
+        { status: 400 }
       );
+    }
 
-    // Buscar snapshots filtrando pela loja
     const [leftSnap, rightSnap] = await Promise.all([
       prisma.list.findFirst({ where: { id: leftId, store } }),
       prisma.list.findFirst({ where: { id: rightId, store } }),
@@ -52,14 +53,14 @@ export async function POST(request: Request) {
           success: false,
           error: "One or both snapshots not found for your store",
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     const comparison = compareListsOfProducts(
       leftSnap.products as any[],
       rightSnap.products as any[],
-      false,
+      false
     );
 
     return NextResponse.json({
@@ -70,10 +71,10 @@ export async function POST(request: Request) {
       existingProducts: comparison.maintainedProducts,
       removedProducts: comparison.removedProducts,
     });
-  } catch (err: any) {
+  } catch {
     return NextResponse.json(
-      { success: false, error: err.message || "Server error" },
-      { status: 500 },
+      { success: false, error: "Server error" },
+      { status: 500 }
     );
   }
 }

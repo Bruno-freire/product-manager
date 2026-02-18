@@ -1,15 +1,14 @@
 // app/api/snapshots/list/route.ts
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/backend/prisma";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 
 export async function GET(request: Request) {
   try {
-    // Recupera o token do cookie
-    const token = request.headers
-      .get("cookie")
-      ?.split("; ")
-      .find((c) => c.startsWith("token="))
-      ?.split("=")[1];
+    const cookieStore = cookies();
+    const token = (await cookieStore).get("token")?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -18,17 +17,18 @@ export async function GET(request: Request) {
       );
     }
 
-    let user;
-    try {
-      user = JSON.parse(decodeURIComponent(token));
-    } catch {
+    if (!process.env.JWT_SECRET) {
       return NextResponse.json(
-        { success: false, error: "Invalid token" },
-        { status: 401 },
+        { success: false, error: "Server configuration error" },
+        { status: 500 },
       );
     }
 
-    const store = user.store;
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+
+    const store = payload.store as string;
+
     if (!store) {
       return NextResponse.json(
         { success: false, error: "Store obrigatória" },
@@ -41,7 +41,6 @@ export async function GET(request: Request) {
     const take = 20;
     const skip = (page - 1) * take;
 
-    // Contagem e busca filtrada pela loja
     const [total, items] = await Promise.all([
       prisma.list.count({ where: { store } }),
       prisma.list.findMany({
@@ -58,14 +57,11 @@ export async function GET(request: Request) {
       page,
       perPage: take,
       total,
-      snapshots: items.map((s) => ({
-        id: s.id,
-        createdAt: s.createdAt,
-      })),
+      snapshots: items,
     });
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: err.message || "Server error" },
+      { success: false, error: "Server error" },
       { status: 500 },
     );
   }

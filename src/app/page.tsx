@@ -88,6 +88,8 @@ export default function Home() {
         router.push("/login");
         return;
       }
+      console.log("👤 Usuário logado:", user);
+      console.log("🔍 Carregando produtos existentes para a store:", user.store);
       await fetchExistingProducts(user.store);
     };
     init();
