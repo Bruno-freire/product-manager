@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -75,14 +76,25 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Senha
             </label>
-            <input
-              type="password"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition pr-12"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-sm text-blue-600 font-medium"
+              >
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </button>
+            </div>
           </div>
 
           <button
