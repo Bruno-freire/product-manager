@@ -310,8 +310,7 @@ export default function Home() {
             <p>Total Products:</p>
             <span>
               {filteredNew.length +
-                filteredExisting.length +
-                filteredRemoved.length}
+                filteredExisting.length}
             </span>
           </div>
 

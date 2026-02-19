@@ -50,8 +50,8 @@ export const processingListProduct = async (
       const name = columns[1];
       const itemStore = columns[2];
       const address = columns[4];
-      const amount = columns[7];
-
+      const amount = columns[5];
+      
       if (!code || !name || !address || !amount || !itemStore) return null;
 
       return {
