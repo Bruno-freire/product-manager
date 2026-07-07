@@ -88,8 +88,6 @@ export default function Home() {
         router.push("/login");
         return;
       }
-      console.log("👤 Usuário logado:", user);
-      console.log("🔍 Carregando produtos existentes para a store:", user.store);
       await fetchExistingProducts(user.store);
     };
     init();
@@ -282,13 +280,17 @@ export default function Home() {
             </button>
             <button
               type="button"
-              onClick={() => previousState && setConfirmRollbackOpen(true)}
-              disabled={!previousState}
-              className={`flex-1 py-3 rounded-lg text-white ${
-                previousState
-                  ? "bg-yellow-500 hover:bg-yellow-600"
-                  : "bg-gray-300"
-              }`}
+              disabled={true}
+              className="
+    flex-1
+    py-3
+    rounded-lg
+    bg-gray-300
+    text-gray-500
+    opacity-60
+    cursor-not-allowed
+    pointer-events-none
+  "
             >
               Rollback
             </button>
@@ -308,10 +310,7 @@ export default function Home() {
         <div className="flex flex-col space-y-6 p-6 rounded-2xl shadow-sm border border-gray-100 bg-white">
           <div className="flex justify-between bg-gray-50 p-4 rounded-lg">
             <p>Total Products:</p>
-            <span>
-              {filteredNew.length +
-                filteredExisting.length}
-            </span>
+            <span>{filteredNew.length + filteredExisting.length}</span>
           </div>
 
           <RenderProductList
